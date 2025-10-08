@@ -68,10 +68,10 @@ resume: false                          # Whether to resume training from a check
 
 #### MLflow Tracking (optional)
 ```yaml
-setup_mlflow: true                     # Enable MLflow tracking
+setup_mlflow: false                    # Enable MLflow tracking
 mlflow_autolog: false                  # Enable MLflow autologging
-mlflow_tracking_uri: "https://mlflow.aiap19.aisingapore.net"
-mlflow_exp_name: "isaacb_kam_jk_weather"
+mlflow_tracking_uri: "http://localhost:5000"
+mlflow_exp_name: "brian_weather"
 mlflow_run_name: "SARIMA"
 ```
 

@@ -3,7 +3,7 @@
 ## Name / Email
 
 **Author:** Brian Isaac Kam\
-**Email:** [isaacb_kam_jk@aiap.sg](mailto\:isaacb_kam_jk@aiap.sg)
+**Email:** [isaacbikjk@gmail.com](mailto\:isaacbikjk@gmail.com)
 
 ## Project Overview & Folder Structure
 

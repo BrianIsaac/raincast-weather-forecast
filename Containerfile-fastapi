@@ -1,0 +1,65 @@
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim as build
+
+ARG DEBIAN_FRONTEND="noninteractive"
+
+ARG NON_ROOT_USER="aisg"
+ARG HOME_DIR="/home/${NON_ROOT_USER}"
+ARG REPO_DIR=${HOME_DIR}/backend
+
+RUN mkdir -p ${REPO_DIR}
+WORKDIR ${REPO_DIR}
+
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev --group inference --group data
+
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+ARG DEBIAN_FRONTEND="noninteractive"
+
+ARG NON_ROOT_USER="aisg"
+ARG NON_ROOT_UID="2222"
+ARG NON_ROOT_GID="2222"
+ARG HOME_DIR="/home/${NON_ROOT_USER}"
+ARG REPO_DIR=${HOME_DIR}/backend
+
+RUN useradd -l -m -s /bin/bash -u ${NON_ROOT_UID} ${NON_ROOT_USER}
+
+RUN apt update -qy && \
+    apt -qyy install curl git && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ENV PYTHONIOENCODING=utf8
+ENV LANG="C.UTF-8"
+ENV LC_ALL="C.UTF-8"
+ENV PATH="${HOME_DIR}/.local/bin:$PATH"
+ENV PATH="${REPO_DIR}/.venv/bin:$PATH"
+
+USER ${NON_ROOT_USER}
+WORKDIR ${REPO_DIR}
+
+COPY --from=build --chown=${NON_ROOT_USER}:${NON_ROOT_GID} ${REPO_DIR} ${REPO_DIR}
+
+COPY --chown=${NON_ROOT_USER}:${NON_ROOT_GID} src/inference.py src/inference.py
+COPY --chown=${NON_ROOT_USER}:${NON_ROOT_GID} src/model.py src/model.py
+COPY --chown=${NON_ROOT_USER}:${NON_ROOT_GID} api/ api/
+
+ENV UVICORN_HOST="0.0.0.0"
+ENV UVICORN_PORT="8000"
+ENV PYTHONPATH=/home/aisg/backend
+EXPOSE 8000
+
+ENTRYPOINT ["uvicorn", "main:app", "--app-dir", "api"]
+
+
+# to build the image
+# podman build -t fastapiservice -f Containerfile-fastapi
+
+# to run and mount the model
+# podman run -d -v ./models/Model/:/home/aisg/backend/models/Model/ -p 8000:8000 --rm fastapiservice

@@ -1,0 +1,35 @@
+services:
+  fastapi:
+    image: fastapiservice:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models/Model/:/home/aisg/backend/models/Model/
+    networks:
+      - weather-app-network
+
+  streamlit:
+    image: streamlitfrontend:latest
+    ports:
+      - "8501:8501"
+    environment:
+      - FASTAPI_URL=http://fastapi:8000/predict  # Pass FastAPI endpoint as env
+    depends_on:
+      - fastapi
+    networks:
+      - weather-app-network
+
+networks:
+  weather-app-network:
+    external: true
+
+# podman network create weather-app-network
+
+# podman-compose -f weather-app-compose.yml up -d
+# podman-compose -f weather-app-compose.yml ps
+
+# # Stop and remove the ML application containers, networks, and volumes
+# podman-compose -f weather-app-compose.yml down
+
+# # Remove network
+# podman network rm weather-app-network

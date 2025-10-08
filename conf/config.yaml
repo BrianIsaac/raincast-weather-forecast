@@ -1,0 +1,56 @@
+setup_mlflow: true
+mlflow_autolog: false
+mlflow_tracking_uri: "https://mlflow.aiap19.aisingapore.net"
+mlflow_exp_name: "isaacb_kam_jk_weather"
+mlflow_run_name: "SARIMA"
+resume: false
+# mlflow_run_name: "test" 
+batch_size: 1024
+seed: 1111
+epochs: 100
+model_checkpoint_dir_path: "./models"
+log_dir: "./logs/models"
+lr: 1e-4
+lookback_window: 24
+forecast_model: "SARIMA" # the following are available: SARIMA, TLSTM, TimeXer, RandomForest
+horizon: 1
+device: "cuda" #for gpu (cuda), or cpu (cpu)
+data_path: "./data/aggregated/"
+
+#### TLSTM ####
+TLSTM:
+  target_col: "rainfall"
+  split_date: "2024-01-01"
+  hurdle: true
+  delta: true
+  shuffle_train: false
+
+#### SARIMA ####
+pdq: [1,1,1]
+seasonal_pdq: [1,1,0,24]
+
+#### TimeXer ####
+TimeXer:
+  timestamp_col: "timestamp"
+  value_col: "reading_value_hourly_mean"
+  feature_cols:
+    - "wind_speed"
+    - "air_temperature"
+    - "wind_direction"
+    - "humidity"
+  target_col: "rainfall"
+  window_size: 24
+  prediction_length: 1
+  split_date: "2024-01-01"   # ISO date; will be parsed with tz="Asia/Singapore"
+  num_workers: 2
+  lr: 1e-4
+
+#### RandomForest ####
+RandomForest:
+  target_col: "rainfall"
+  split_date: "2024-01-01"
+  horizon: 1
+  batch_size: 1024
+  n_estimators: 100
+  random_state: 42
+  delta: true
